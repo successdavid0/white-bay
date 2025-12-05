@@ -127,10 +127,10 @@ function BookingContent() {
   }
 
   return (
-    <div className="min-h-screen bg-sand-100 pt-24">
+    <div className="min-h-screen bg-sand-100 pt-20 sm:pt-24">
       {/* Progress Steps */}
-      <div className="bg-white shadow-sm sticky top-20 z-30">
-        <div className="max-w-5xl mx-auto px-6 py-6">
+      <div className="bg-white shadow-sm sticky top-16 sm:top-20 z-30">
+        <div className="max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6">
           <div className="flex items-center justify-between">
             {steps.map((step, index) => {
               const StepIcon = step.icon;
@@ -146,14 +146,14 @@ function BookingContent() {
                         backgroundColor: isCompleted ? '#17C3B2' : isActive ? '#0A72B5' : '#E8E8D8',
                       }}
                       className={cn(
-                        'w-12 h-12 rounded-full flex items-center justify-center transition-colors',
+                        'w-9 h-9 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-colors',
                         isCompleted || isActive ? 'text-white' : 'text-navy-500/50'
                       )}
                     >
-                      {isCompleted ? <Check size={20} /> : <StepIcon size={20} />}
+                      {isCompleted ? <Check size={16} className="sm:w-5 sm:h-5" /> : <StepIcon size={16} className="sm:w-5 sm:h-5" />}
                     </motion.div>
                     <span className={cn(
-                      'text-xs mt-2 font-accent hidden sm:block',
+                      'text-[10px] sm:text-xs mt-1 sm:mt-2 font-accent text-center max-w-[60px] sm:max-w-none',
                       isActive ? 'text-ocean-500 font-semibold' : 'text-navy-500/50'
                     )}>
                       {step.name}
@@ -161,7 +161,7 @@ function BookingContent() {
                   </div>
                   {index < steps.length - 1 && (
                     <div className={cn(
-                      'w-12 md:w-24 h-1 mx-2 rounded-full transition-colors',
+                      'w-4 sm:w-12 md:w-24 h-1 mx-1 sm:mx-2 rounded-full transition-colors',
                       isCompleted ? 'bg-teal-400' : 'bg-sand-200'
                     )} />
                   )}
@@ -173,8 +173,8 @@ function BookingContent() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-6 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
           {/* Booking Form */}
           <div className="lg:col-span-2">
             <AnimatePresence mode="wait">

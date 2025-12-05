@@ -64,26 +64,26 @@ export default function Header() {
         </div>
 
         {/* Main Navigation */}
-        <nav className="max-w-7xl mx-auto px-6 py-4">
+        <nav className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
           <div className="flex items-center justify-between">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-3 group">
+            <Link href="/" className="flex items-center gap-2 sm:gap-3 group">
               <motion.div
                 whileHover={{ rotate: 360 }}
                 transition={{ duration: 0.6 }}
-                className="w-12 h-12 bg-gradient-to-br from-ocean-500 to-teal-400 rounded-full flex items-center justify-center shadow-lg shadow-ocean-500/30"
+                className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-ocean-500 to-teal-400 rounded-full flex items-center justify-center shadow-lg shadow-ocean-500/30"
               >
-                <span className="text-white font-heading text-xl font-bold">W</span>
+                <span className="text-white font-heading text-lg sm:text-xl font-bold">W</span>
               </motion.div>
               <div>
                 <h1 className={cn(
-                  'font-heading text-xl font-semibold transition-colors',
+                  'font-heading text-lg sm:text-xl font-semibold transition-colors',
                   isScrolled ? 'text-navy-500' : 'text-white text-shadow'
                 )}>
                   WhiteBay
                 </h1>
                 <p className={cn(
-                  'text-xs tracking-[0.2em] uppercase transition-colors',
+                  'text-[10px] sm:text-xs tracking-[0.15em] sm:tracking-[0.2em] uppercase transition-colors',
                   isScrolled ? 'text-ocean-500' : 'text-white/80'
                 )}>
                   Resort & Spa

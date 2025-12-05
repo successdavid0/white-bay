@@ -273,15 +273,16 @@ function RoomCard({ room }: RoomCardProps) {
         </div>
 
         {/* Content Section */}
-        <div className="flex-1 p-6 md:p-8 flex flex-col justify-between">
+        <div className="flex-1 p-4 sm:p-6 md:p-8 flex flex-col justify-between">
           <div>
-            <div className="flex items-start justify-between mb-3">
-              <h3 className="font-heading text-2xl text-navy-500">{room.name}</h3>
-              <div className="text-right">
-                <p className="font-heading text-2xl text-ocean-500">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-0 mb-3">
+              <h3 className="font-heading text-xl sm:text-2xl text-navy-500">{room.name}</h3>
+              <div className="sm:text-right">
+                <p className="font-heading text-xl sm:text-2xl text-ocean-500">
                   {formatCurrency(room.price)}
+                  <span className="text-navy-500/50 text-sm sm:hidden"> /night</span>
                 </p>
-                <p className="text-navy-500/50 text-sm">per night</p>
+                <p className="text-navy-500/50 text-sm hidden sm:block">per night</p>
               </div>
             </div>
 
@@ -290,17 +291,17 @@ function RoomCard({ room }: RoomCardProps) {
             </p>
 
             {/* Room Details */}
-            <div className="flex flex-wrap gap-4 mb-4 text-sm text-navy-500/70">
+            <div className="flex flex-wrap gap-2 sm:gap-4 mb-4 text-xs sm:text-sm text-navy-500/70">
               <span className="flex items-center gap-1">
-                <Users size={16} />
+                <Users size={14} className="sm:w-4 sm:h-4" />
                 {room.capacity} Guests
               </span>
               <span className="flex items-center gap-1">
-                <Maximize size={16} />
+                <Maximize size={14} className="sm:w-4 sm:h-4" />
                 {room.size}
               </span>
               <span className="flex items-center gap-1">
-                <Bed size={16} />
+                <Bed size={14} className="sm:w-4 sm:h-4" />
                 {room.bedType}
               </span>
             </div>
@@ -325,16 +326,16 @@ function RoomCard({ room }: RoomCardProps) {
           </div>
 
           {/* CTA Buttons */}
-          <div className="flex gap-3 mt-6">
+          <div className="flex gap-2 sm:gap-3 mt-4 sm:mt-6">
             <Link
               href={`/rooms/${room.id}`}
-              className="flex-1 py-3 text-center border-2 border-ocean-500 text-ocean-500 font-accent font-medium rounded-xl hover:bg-ocean-500 hover:text-white transition-all"
+              className="flex-1 py-2.5 sm:py-3 text-center border-2 border-ocean-500 text-ocean-500 font-accent font-medium text-sm sm:text-base rounded-xl hover:bg-ocean-500 hover:text-white transition-all"
             >
-              View Details
+              Details
             </Link>
             <Link
               href={`/booking?room=${room.id}`}
-              className="flex-1 py-3 text-center bg-gradient-to-r from-ocean-500 to-ocean-600 text-white font-accent font-medium rounded-xl hover:shadow-lg hover:shadow-ocean-500/30 transition-all"
+              className="flex-1 py-2.5 sm:py-3 text-center bg-gradient-to-r from-ocean-500 to-ocean-600 text-white font-accent font-medium text-sm sm:text-base rounded-xl hover:shadow-lg hover:shadow-ocean-500/30 transition-all"
             >
               Book Now
             </Link>

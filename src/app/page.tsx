@@ -69,16 +69,16 @@ function HeroSection() {
         />
       </div>
 
-      {/* Floating Decorative Elements */}
+      {/* Floating Decorative Elements - Hidden on mobile */}
       <motion.div
-        className="absolute top-32 left-20 text-white/10"
+        className="absolute top-32 left-20 text-white/10 hidden md:block"
         animate={{ y: [-20, 20, -20], rotate: [0, 10, 0] }}
         transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
       >
         <Waves size={120} />
       </motion.div>
       <motion.div
-        className="absolute bottom-40 right-20 text-white/10"
+        className="absolute bottom-40 right-20 text-white/10 hidden md:block"
         animate={{ y: [20, -20, 20], rotate: [0, -10, 0] }}
         transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
       >
@@ -86,7 +86,7 @@ function HeroSection() {
       </motion.div>
 
       {/* Hero Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-6 text-center pt-24">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 text-center pt-20 sm:pt-24">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -103,7 +103,7 @@ function HeroSection() {
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4 }}
-          className="font-heading text-5xl md:text-7xl lg:text-8xl text-white mb-6 text-shadow-lg"
+          className="font-heading text-4xl sm:text-5xl md:text-7xl lg:text-8xl text-white mb-4 sm:mb-6 text-shadow-lg"
         >
           Where Luxury
           <br />
@@ -116,7 +116,7 @@ function HeroSection() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.6 }}
-          className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto mb-12"
+          className="text-base sm:text-lg md:text-xl text-white/80 max-w-2xl mx-auto mb-8 sm:mb-12 px-2"
         >
           Discover an extraordinary escape at WhiteBay Resort. Pristine beaches, 
           world-class amenities, and unforgettable experiences await.
@@ -129,8 +129,8 @@ function HeroSection() {
           transition={{ duration: 0.8, delay: 0.8 }}
           className="max-w-4xl mx-auto"
         >
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 md:p-8 border border-white/20 shadow-2xl">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-6 md:p-8 border border-white/20 shadow-2xl">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
               {/* Check In */}
               <div className="relative">
                 <label className="block text-white/60 text-sm font-accent mb-2 text-left">
@@ -185,13 +185,14 @@ function HeroSection() {
               </div>
 
               {/* Search Button */}
-              <div className="flex items-end">
+              <div className="flex items-end sm:col-span-2 md:col-span-1">
                 <Link
                   href={`/rooms?checkIn=${checkIn}&checkOut=${checkOut}&guests=${guests}`}
                   className="w-full py-4 bg-gradient-to-r from-gold-400 to-gold-500 text-navy-500 font-accent font-semibold rounded-xl flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-gold-400/30 transform hover:-translate-y-0.5 transition-all duration-300"
                 >
                   <Search size={20} />
-                  Check Availability
+                  <span className="hidden sm:inline">Check Availability</span>
+                  <span className="sm:hidden">Search</span>
                 </Link>
               </div>
             </div>
@@ -492,13 +493,13 @@ function StatsSection() {
       />
 
       <div className="max-w-7xl mx-auto px-6 relative z-10">
-        <StaggerContainer className="grid grid-cols-2 md:grid-cols-4 gap-8">
+        <StaggerContainer className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8">
           {RESORT_STATS.map((stat, index) => (
             <StaggerItem key={index} className="text-center">
-              <div className="text-5xl md:text-6xl font-heading text-white mb-2">
+              <div className="text-3xl sm:text-5xl md:text-6xl font-heading text-white mb-1 sm:mb-2">
                 <Counter value={stat.value} suffix={stat.suffix} />
               </div>
-              <p className="text-white/80 font-accent">{stat.label}</p>
+              <p className="text-white/80 font-accent text-xs sm:text-base">{stat.label}</p>
             </StaggerItem>
           ))}
         </StaggerContainer>

@@ -64,26 +64,26 @@ export default function Footer() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="bg-gradient-to-r from-ocean-500/20 to-teal-400/20 backdrop-blur-sm rounded-3xl p-8 md:p-12 border border-white/10"
+            className="bg-gradient-to-r from-ocean-500/20 to-teal-400/20 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-5 sm:p-8 md:p-12 border border-white/10"
           >
-            <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-5 sm:gap-8">
               <div className="text-center md:text-left">
-                <h3 className="font-heading text-2xl md:text-3xl mb-2">
+                <h3 className="font-heading text-xl sm:text-2xl md:text-3xl mb-2">
                   Subscribe for Exclusive Offers
                 </h3>
-                <p className="text-white/70">
+                <p className="text-white/70 text-sm sm:text-base">
                   Get the latest news and special rates delivered to your inbox.
                 </p>
               </div>
-              <form className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+              <form className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full md:w-auto">
                 <input
                   type="email"
                   placeholder="Enter your email"
-                  className="px-6 py-4 bg-white/10 border border-white/20 rounded-full text-white placeholder:text-white/50 focus:outline-none focus:border-gold-400 transition-colors min-w-[280px]"
+                  className="px-4 sm:px-6 py-3 sm:py-4 bg-white/10 border border-white/20 rounded-full text-white placeholder:text-white/50 focus:outline-none focus:border-gold-400 transition-colors w-full sm:min-w-[280px]"
                 />
                 <button
                   type="submit"
-                  className="px-8 py-4 bg-gradient-to-r from-gold-400 to-gold-500 text-navy-500 font-accent font-semibold rounded-full flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-gold-400/30 transition-all"
+                  className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-gold-400 to-gold-500 text-navy-500 font-accent font-semibold rounded-full flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-gold-400/30 transition-all whitespace-nowrap"
                 >
                   Subscribe
                   <ArrowRight size={18} />
@@ -95,10 +95,10 @@ export default function Footer() {
       </div>
 
       {/* Main Footer Content */}
-      <div className="max-w-7xl mx-auto px-6 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-8 sm:gap-12">
           {/* Brand Column */}
-          <div className="lg:col-span-2">
+          <div className="col-span-2 lg:col-span-2">
             <Link href="/" className="flex items-center gap-3 mb-6">
               <div className="w-12 h-12 bg-gradient-to-br from-ocean-400 to-teal-400 rounded-full flex items-center justify-center">
                 <span className="text-white font-heading text-xl font-bold">W</span>
