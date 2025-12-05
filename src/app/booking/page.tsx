@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -46,7 +46,30 @@ const steps = [
   { id: 4, name: 'Payment', icon: CreditCard },
 ];
 
+function BookingLoading() {
+  return (
+    <div className="min-h-screen bg-sand-100 pt-24 flex items-center justify-center">
+      <div className="text-center">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+          className="w-12 h-12 border-4 border-ocean-200 border-t-ocean-500 rounded-full mx-auto mb-4"
+        />
+        <p className="text-navy-500/60 font-accent">Loading booking...</p>
+      </div>
+    </div>
+  );
+}
+
 export default function BookingPage() {
+  return (
+    <Suspense fallback={<BookingLoading />}>
+      <BookingContent />
+    </Suspense>
+  );
+}
+
+function BookingContent() {
   const searchParams = useSearchParams();
   const [currentStep, setCurrentStep] = useState<BookingStep>(1);
   const [isProcessing, setIsProcessing] = useState(false);
