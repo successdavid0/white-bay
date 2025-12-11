@@ -170,7 +170,7 @@ export default function EventsPage() {
             </h1>
             <p className="text-xl text-white/80 font-light max-w-2xl mx-auto">
               Discover extraordinary experiences at WhiteBay Resort. 
-              From wine tastings to sunset yoga, there's something for everyone.
+              From wine tastings to sunset yoga, there&apos;s something for everyone.
             </p>
 
             {/* Quick Stats */}

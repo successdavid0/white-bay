@@ -73,7 +73,7 @@ export default function DiningPage() {
             <p className="text-navy-500/70 text-lg leading-relaxed">
               Each of our restaurants offers a distinct atmosphere and menu, from elegant 
               fine dining to casual beachfront fare. Our award-winning chefs use locally 
-              sourced ingredients to create memorable dishes that celebrate the region's 
+              sourced ingredients to create memorable dishes that celebrate the region&apos;s 
               rich culinary heritage.
             </p>
           </AnimatedSection>
@@ -193,9 +193,9 @@ export default function DiningPage() {
         <div className="max-w-4xl mx-auto text-center text-white">
           <AnimatedSection>
             <ChefHat size={48} className="mx-auto mb-6 text-gold-400" />
-            <h2 className="font-heading text-4xl mb-6">Private Dining & Chef's Table</h2>
+            <h2 className="font-heading text-4xl mb-6">Private Dining &amp; Chef&apos;s Table</h2>
             <p className="text-white/70 text-lg mb-8 max-w-2xl mx-auto">
-              For a truly exclusive experience, book our Chef's Table for a personalized 
+              For a truly exclusive experience, book our Chef&apos;s Table for a personalized 
               multi-course journey, or arrange a private dinner on the beach under the stars.
             </p>
             <div className="flex flex-wrap justify-center gap-4">

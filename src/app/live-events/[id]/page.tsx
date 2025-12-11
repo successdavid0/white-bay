@@ -150,7 +150,7 @@ export default function EventDetailPage() {
       <div className="min-h-screen bg-sand-100 pt-24">
         <div className="max-w-4xl mx-auto px-6 py-16 text-center">
           <h1 className="font-heading text-3xl text-navy-500 mb-4">Event Not Found</h1>
-          <p className="text-gray-600 mb-8">The event you're looking for doesn't exist or has been removed.</p>
+          <p className="text-gray-600 mb-8">The event you&apos;re looking for doesn&apos;t exist or has been removed.</p>
           <Link
             href="/live-events"
             className="inline-flex items-center gap-2 text-ocean-500 font-accent hover:text-ocean-600"

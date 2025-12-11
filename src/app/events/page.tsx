@@ -301,7 +301,7 @@ export default function EventsPage() {
         <div className="max-w-4xl mx-auto text-center text-white">
           <AnimatedSection>
             <Star className="mx-auto mb-6 text-gold-400" size={40} />
-            <h2 className="font-heading text-4xl mb-6">Let's Plan Your Event</h2>
+            <h2 className="font-heading text-4xl mb-6">Let&apos;s Plan Your Event</h2>
             <p className="text-white/70 text-lg mb-8">
               Our dedicated events team is ready to bring your vision to life. 
               Contact us for a personalized consultation and quote.

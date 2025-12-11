@@ -137,7 +137,7 @@ export default function PoliciesPage() {
               <h2 className="font-heading text-3xl mb-4">Need Clarification?</h2>
               <p className="text-white/80 mb-6">
                 If you have any questions about our policies or require special accommodations, 
-                please don't hesitate to contact us. Our team is happy to assist you.
+                please don&apos;t hesitate to contact us. Our team is happy to assist you.
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link

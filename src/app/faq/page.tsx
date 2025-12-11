@@ -101,7 +101,7 @@ export default function FAQPage() {
           {filteredFAQ.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-navy-500/60 text-lg">
-                No results found for "{searchTerm}"
+                No results found for &quot;{searchTerm}&quot;
               </p>
               <button
                 onClick={() => setSearchTerm('')}
