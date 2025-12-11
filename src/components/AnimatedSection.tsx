@@ -1,7 +1,7 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { ReactNode } from 'react';
+import { motion, LazyMotion, domAnimation } from 'framer-motion';
+import { ReactNode, memo } from 'react';
 
 interface AnimatedSectionProps {
   children: ReactNode;
@@ -10,36 +10,41 @@ interface AnimatedSectionProps {
   direction?: 'up' | 'down' | 'left' | 'right' | 'none';
 }
 
-export default function AnimatedSection({
+// Memoized animated section for better performance
+const AnimatedSection = memo(function AnimatedSection({
   children,
   className = '',
   delay = 0,
   direction = 'up',
 }: AnimatedSectionProps) {
   const directionVariants = {
-    up: { y: 50, opacity: 0 },
-    down: { y: -50, opacity: 0 },
-    left: { x: 50, opacity: 0 },
-    right: { x: -50, opacity: 0 },
+    up: { y: 30, opacity: 0 },
+    down: { y: -30, opacity: 0 },
+    left: { x: 30, opacity: 0 },
+    right: { x: -30, opacity: 0 },
     none: { opacity: 0 },
   };
 
   return (
-    <motion.div
-      initial={directionVariants[direction]}
-      whileInView={{ x: 0, y: 0, opacity: 1 }}
-      viewport={{ once: true, margin: '-100px' }}
-      transition={{
-        duration: 0.7,
-        delay,
-        ease: [0.25, 0.1, 0.25, 1],
-      }}
-      className={className}
-    >
-      {children}
-    </motion.div>
+    <LazyMotion features={domAnimation}>
+      <motion.div
+        initial={directionVariants[direction]}
+        whileInView={{ x: 0, y: 0, opacity: 1 }}
+        viewport={{ once: true, margin: '-50px' }}
+        transition={{
+          duration: 0.4,
+          delay,
+          ease: 'easeOut',
+        }}
+        className={className}
+      >
+        {children}
+      </motion.div>
+    </LazyMotion>
   );
-}
+});
+
+export default AnimatedSection;
 
 // Staggered container for multiple animated items
 interface StaggerContainerProps {
@@ -48,29 +53,31 @@ interface StaggerContainerProps {
   staggerDelay?: number;
 }
 
-export function StaggerContainer({
+export const StaggerContainer = memo(function StaggerContainer({
   children,
   className = '',
-  staggerDelay = 0.1,
+  staggerDelay = 0.05,
 }: StaggerContainerProps) {
   return (
-    <motion.div
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: '-100px' }}
-      variants={{
-        visible: {
-          transition: {
-            staggerChildren: staggerDelay,
+    <LazyMotion features={domAnimation}>
+      <motion.div
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: '-50px' }}
+        variants={{
+          visible: {
+            transition: {
+              staggerChildren: staggerDelay,
+            },
           },
-        },
-      }}
-      className={className}
-    >
-      {children}
-    </motion.div>
+        }}
+        className={className}
+      >
+        {children}
+      </motion.div>
+    </LazyMotion>
   );
-}
+});
 
 // Individual stagger item
 interface StaggerItemProps {
@@ -78,17 +85,17 @@ interface StaggerItemProps {
   className?: string;
 }
 
-export function StaggerItem({ children, className = '' }: StaggerItemProps) {
+export const StaggerItem = memo(function StaggerItem({ children, className = '' }: StaggerItemProps) {
   return (
     <motion.div
       variants={{
-        hidden: { y: 30, opacity: 0 },
+        hidden: { y: 20, opacity: 0 },
         visible: {
           y: 0,
           opacity: 1,
           transition: {
-            duration: 0.5,
-            ease: [0.25, 0.1, 0.25, 1],
+            duration: 0.3,
+            ease: 'easeOut',
           },
         },
       }}
@@ -97,107 +104,42 @@ export function StaggerItem({ children, className = '' }: StaggerItemProps) {
       {children}
     </motion.div>
   );
-}
+});
 
-// Parallax effect component
-interface ParallaxProps {
+// Simple fade in component - very lightweight
+interface FadeInProps {
   children: ReactNode;
-  className?: string;
-  speed?: number;
-}
-
-export function Parallax({ children, className = '', speed = 0.5 }: ParallaxProps) {
-  return (
-    <motion.div
-      initial={{ y: 0 }}
-      whileInView={{ y: -50 * speed }}
-      viewport={{ once: false }}
-      transition={{ duration: 0 }}
-      className={className}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
-// Text reveal animation
-interface TextRevealProps {
-  text: string;
   className?: string;
   delay?: number;
 }
 
-export function TextReveal({ text, className = '', delay = 0 }: TextRevealProps) {
-  const words = text.split(' ');
-
+export const FadeIn = memo(function FadeIn({ children, className = '', delay = 0 }: FadeInProps) {
   return (
-    <motion.span
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true }}
-      className={className}
-    >
-      {words.map((word, index) => (
-        <motion.span
-          key={index}
-          variants={{
-            hidden: { opacity: 0, y: 20 },
-            visible: {
-              opacity: 1,
-              y: 0,
-              transition: {
-                duration: 0.5,
-                delay: delay + index * 0.1,
-              },
-            },
-          }}
-          className="inline-block mr-2"
-        >
-          {word}
-        </motion.span>
-      ))}
-    </motion.span>
+    <LazyMotion features={domAnimation}>
+      <motion.div
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.3, delay }}
+        className={className}
+      >
+        {children}
+      </motion.div>
+    </LazyMotion>
   );
-}
+});
 
-// Counter animation
+// Counter animation - simplified
 interface CounterProps {
   value: number;
   suffix?: string;
   className?: string;
-  duration?: number;
 }
 
-export function Counter({ value, suffix = '', className = '', duration = 2 }: CounterProps) {
+export const Counter = memo(function Counter({ value, suffix = '', className = '' }: CounterProps) {
   return (
-    <motion.span
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
-      viewport={{ once: true }}
-      className={className}
-    >
-      <motion.span
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.5 }}
-      >
-        <CounterValue value={value} duration={duration} />
-        {suffix}
-      </motion.span>
-    </motion.span>
+    <span className={className}>
+      {value.toLocaleString()}{suffix}
+    </span>
   );
-}
-
-function CounterValue({ value, duration }: { value: number; duration: number }) {
-  return (
-    <motion.span
-      initial={{ opacity: 1 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration }}
-    >
-      {value.toLocaleString()}
-    </motion.span>
-  );
-}
-
+});

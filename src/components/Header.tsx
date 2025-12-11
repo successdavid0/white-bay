@@ -1,15 +1,32 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Phone, ChevronDown } from 'lucide-react';
+import { Menu, X, Phone, ChevronDown, ChevronRight } from 'lucide-react';
 import { NAV_LINKS, SITE_CONFIG } from '@/lib/constants';
 import { cn } from '@/lib/utils';
+
+interface NavItem {
+  name: string;
+  href: string;
+  megaMenu?: boolean;
+  sections?: {
+    title: string;
+    items: {
+      name: string;
+      href: string;
+      description: string;
+    }[];
+  }[];
+}
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [activeMegaMenu, setActiveMegaMenu] = useState<string | null>(null);
+  const [mobileSubmenu, setMobileSubmenu] = useState<string | null>(null);
+  const megaMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -18,6 +35,24 @@ export default function Header() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (megaMenuRef.current && !megaMenuRef.current.contains(event.target as Node)) {
+        setActiveMegaMenu(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleMegaMenuEnter = (name: string) => {
+    setActiveMegaMenu(name);
+  };
+
+  const handleMegaMenuLeave = () => {
+    setActiveMegaMenu(null);
+  };
 
   return (
     <>
@@ -64,7 +99,7 @@ export default function Header() {
         </div>
 
         {/* Main Navigation */}
-        <nav className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
+        <nav className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4" ref={megaMenuRef}>
           <div className="flex items-center justify-between">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2 sm:gap-3 group">
@@ -92,10 +127,30 @@ export default function Header() {
             </Link>
 
             {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center gap-8">
-              {NAV_LINKS.map((link) => (
-                <Link
+            <div className="hidden lg:flex items-center gap-6">
+              {(NAV_LINKS as NavItem[]).map((link) => (
+                <div
                   key={link.name}
+                  className="relative"
+                  onMouseEnter={() => link.megaMenu && handleMegaMenuEnter(link.name)}
+                  onMouseLeave={handleMegaMenuLeave}
+                >
+                  {link.megaMenu ? (
+                    <button
+                      className={cn(
+                        'relative font-accent text-sm font-medium tracking-wide transition-colors flex items-center gap-1',
+                        isScrolled ? 'text-navy-500 hover:text-ocean-500' : 'text-white hover:text-gold-400',
+                        activeMegaMenu === link.name && (isScrolled ? 'text-ocean-500' : 'text-gold-400')
+                      )}
+                    >
+                      {link.name}
+                      <ChevronDown size={14} className={cn(
+                        'transition-transform',
+                        activeMegaMenu === link.name && 'rotate-180'
+                      )} />
+                    </button>
+                  ) : (
+                    <Link
                   href={link.href}
                   className={cn(
                     'relative font-accent text-sm font-medium tracking-wide transition-colors link-underline',
@@ -104,23 +159,67 @@ export default function Header() {
                 >
                   {link.name}
                 </Link>
+                  )}
+
+                  {/* Mega Menu Dropdown */}
+                  <AnimatePresence>
+                    {link.megaMenu && activeMegaMenu === link.name && link.sections && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        transition={{ duration: 0.2 }}
+                        className="fixed top-[72px] left-1/2 -translate-x-1/2 pt-4 z-50"
+                      >
+                        <div className="bg-white rounded-2xl shadow-2xl shadow-navy-500/20 overflow-hidden min-w-[600px] max-w-[90vw]">
+                          <div className="grid grid-cols-4 gap-0">
+                            {link.sections.map((section) => (
+                              <div key={section.title} className="p-6 border-r border-gray-100 last:border-r-0">
+                                <h3 className="font-heading text-sm font-semibold text-navy-500 mb-4 uppercase tracking-wider">
+                                  {section.title}
+                                </h3>
+                                <ul className="space-y-3">
+                                  {section.items.map((item) => (
+                                    <li key={item.name}>
+                                      <Link
+                                        href={item.href}
+                                        onClick={() => setActiveMegaMenu(null)}
+                                        className="group block"
+                                      >
+                                        <span className="text-navy-500 font-medium text-sm group-hover:text-ocean-500 transition-colors">
+                                          {item.name}
+                                        </span>
+                                        <p className="text-navy-500/50 text-xs mt-0.5">
+                                          {item.description}
+                                        </p>
+                                      </Link>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
               ))}
             </div>
-
-            {/* CTA Button */}
-            <div className="hidden lg:flex items-center gap-4">
+                          <div className="bg-gradient-to-r from-ocean-50 to-teal-50 px-6 py-4 border-t border-gray-100">
+                            <div className="flex items-center justify-between">
+                              <p className="text-sm text-navy-500/70">
+                                Discover our world-class amenities and experiences
+                              </p>
               <Link
-                href="/booking"
-                className="group relative overflow-hidden px-6 py-3 bg-gradient-to-r from-gold-400 to-gold-500 text-navy-500 font-accent font-semibold text-sm rounded-full shadow-lg shadow-gold-400/30 hover:shadow-xl hover:shadow-gold-400/40 transform hover:-translate-y-0.5 transition-all duration-300"
-              >
-                <span className="relative z-10">Book Now</span>
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-gold-500 to-gold-600"
-                  initial={{ x: '-100%' }}
-                  whileHover={{ x: 0 }}
-                  transition={{ duration: 0.3 }}
-                />
+                                href="/facilities"
+                                onClick={() => setActiveMegaMenu(null)}
+                                className="text-sm font-medium text-ocean-500 hover:text-ocean-600 flex items-center gap-1"
+                              >
+                                View All Facilities
+                                <ChevronRight size={14} />
               </Link>
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              ))}
             </div>
 
             {/* Mobile Menu Button */}
@@ -141,44 +240,96 @@ export default function Header() {
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
             className="fixed inset-0 z-40 lg:hidden"
           >
             <div className="absolute inset-0 bg-navy-500/95 backdrop-blur-lg" />
-            <nav className="relative h-full flex flex-col items-center justify-center gap-8 p-6">
-              {NAV_LINKS.map((link, index) => (
+            <nav className="relative h-full overflow-y-auto pt-24 pb-8 px-6">
+              <div className="flex flex-col gap-4">
+                {(NAV_LINKS as NavItem[]).map((link, index) => (
                 <motion.div
                   key={link.name}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                  >
+                    {link.megaMenu ? (
+                      <div>
+                        <button
+                          onClick={() => setMobileSubmenu(mobileSubmenu === link.name ? null : link.name)}
+                          className="w-full text-left text-white text-xl font-heading flex items-center justify-between py-2"
+                        >
+                          {link.name}
+                          <ChevronDown size={20} className={cn(
+                            'transition-transform',
+                            mobileSubmenu === link.name && 'rotate-180'
+                          )} />
+                        </button>
+                        <AnimatePresence>
+                          {mobileSubmenu === link.name && link.sections && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="pl-4 pb-4 space-y-4 mt-2">
+                                {link.sections.map((section) => (
+                                  <div key={section.title}>
+                                    <h4 className="text-gold-400 text-sm font-accent uppercase tracking-wider mb-2">
+                                      {section.title}
+                                    </h4>
+                                    <ul className="space-y-2">
+                                      {section.items.map((item) => (
+                                        <li key={item.name}>
+                                          <Link
+                                            href={item.href}
+                                            onClick={() => {
+                                              setIsMobileMenuOpen(false);
+                                              setMobileSubmenu(null);
+                                            }}
+                                            className="text-white/80 hover:text-white text-base"
+                                          >
+                                            {item.name}
+                                          </Link>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                ))}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    ) : (
                   <Link
                     href={link.href}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="text-white text-2xl font-heading hover:text-gold-400 transition-colors"
+                        className="text-white text-xl font-heading block py-2 hover:text-gold-400 transition-colors"
                   >
                     {link.name}
                   </Link>
+                    )}
                 </motion.div>
               ))}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 }}
-                className="mt-8"
-              >
-                <Link
-                  href="/booking"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="px-8 py-4 bg-gradient-to-r from-gold-400 to-gold-500 text-navy-500 font-accent font-semibold rounded-full"
-                >
-                  Book Your Stay
-                </Link>
-              </motion.div>
+              </div>
+
+              {/* Mobile Menu Footer */}
+              <div className="mt-8 pt-8 border-t border-white/10">
+                <div className="flex flex-col gap-4 text-white/70 text-sm">
+                  <a href={`tel:${SITE_CONFIG.contact.phone}`} className="flex items-center gap-2">
+                    <Phone size={16} />
+                    {SITE_CONFIG.contact.phone}
+                  </a>
+                  <a href={`mailto:${SITE_CONFIG.contact.email}`}>
+                    {SITE_CONFIG.contact.email}
+                  </a>
+                </div>
+              </div>
             </nav>
           </motion.div>
         )}
@@ -186,4 +337,3 @@ export default function Header() {
     </>
   );
 }
-

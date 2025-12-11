@@ -1,102 +1,42 @@
 'use client';
 
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 import {
   TrendingUp,
-  TrendingDown,
   DollarSign,
   Users,
   Calendar,
   BedDouble,
   ArrowUpRight,
   ArrowDownRight,
-  MoreHorizontal
+  MoreHorizontal,
+  Bell,
+  RefreshCw
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
+import { getDashboardStats, subscribeToBookings, BookingWithGuest } from '@/lib/supabase';
 
-// Mock data for the dashboard
-const stats = [
-  {
-    title: 'Total Revenue',
-    value: '$124,592',
-    change: '+12.5%',
-    trend: 'up',
-    icon: DollarSign,
-    color: 'from-green-500 to-emerald-600',
-  },
-  {
-    title: 'Total Bookings',
-    value: '1,248',
-    change: '+8.2%',
-    trend: 'up',
-    icon: Calendar,
-    color: 'from-ocean-500 to-ocean-600',
-  },
-  {
-    title: 'Occupancy Rate',
-    value: '78.5%',
-    change: '-2.1%',
-    trend: 'down',
-    icon: BedDouble,
-    color: 'from-purple-500 to-purple-600',
-  },
-  {
-    title: 'Total Guests',
-    value: '3,842',
-    change: '+15.3%',
-    trend: 'up',
-    icon: Users,
-    color: 'from-gold-400 to-gold-500',
-  },
-];
+interface DashboardStats {
+  totalRevenue: number;
+  totalBookings: number;
+  recentBookings: number;
+  pendingBookings: number;
+  confirmedBookings: number;
+  cancelledBookings: number;
+  bookings: BookingWithGuest[];
+}
 
-const recentBookings = [
-  {
-    id: 'WB-X8K2M9P4',
-    guest: 'Sarah Mitchell',
-    room: 'Ocean View Suite',
-    checkIn: '2024-01-15',
-    checkOut: '2024-01-18',
-    status: 'confirmed',
-    amount: '$1,350',
-  },
-  {
-    id: 'WB-N3J7L2Q8',
-    guest: 'James Thompson',
-    room: 'Beachfront Villa',
-    checkIn: '2024-01-16',
-    checkOut: '2024-01-20',
-    status: 'pending',
-    amount: '$3,400',
-  },
-  {
-    id: 'WB-P9R4T6W1',
-    guest: 'Emily Chen',
-    room: 'Honeymoon Haven',
-    checkIn: '2024-01-17',
-    checkOut: '2024-01-21',
-    status: 'confirmed',
-    amount: '$2,720',
-  },
-  {
-    id: 'WB-K5M8N2V7',
-    guest: 'Michael Rodriguez',
-    room: 'Presidential Suite',
-    checkIn: '2024-01-18',
-    checkOut: '2024-01-22',
-    status: 'confirmed',
-    amount: '$6,000',
-  },
-  {
-    id: 'WB-L1Q3R8S4',
-    guest: 'Anna Williams',
-    room: 'Garden Retreat',
-    checkIn: '2024-01-19',
-    checkOut: '2024-01-21',
-    status: 'cancelled',
-    amount: '$640',
-  },
-];
+interface DisplayBooking {
+  id: string;
+  guest: string;
+  room: string;
+  checkIn: string;
+  checkOut: string;
+  status: string;
+  amount: string;
+}
 
 const roomOccupancy = [
   { name: 'Ocean View Suite', occupied: 85, color: 'bg-ocean-500' },
@@ -108,8 +48,130 @@ const roomOccupancy = [
 ];
 
 export default function AdminDashboard() {
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [recentBookings, setRecentBookings] = useState<DisplayBooking[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [newBookingAlert, setNewBookingAlert] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchDashboardData = useCallback(async () => {
+    try {
+      const data = await getDashboardStats();
+      setStats(data);
+      
+      // Transform bookings for display
+      const displayBookings = data.bookings.map((booking: BookingWithGuest) => ({
+        id: booking.booking_code || booking.id,
+        guest: `${booking.guest_first_name || ''} ${booking.guest_last_name || ''}`.trim() || 'Guest',
+        room: booking.room_name || 'Unknown Room',
+        checkIn: booking.check_in,
+        checkOut: booking.check_out,
+        status: booking.booking_status,
+        amount: formatCurrency(booking.total_amount || 0),
+      }));
+      setRecentBookings(displayBookings);
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchDashboardData();
+
+    // Subscribe to real-time updates
+    const unsubscribe = subscribeToBookings((payload) => {
+      if (payload.eventType === 'INSERT' && payload.new) {
+        // New booking received - refresh data and show alert
+        fetchDashboardData();
+        setNewBookingAlert(true);
+        setTimeout(() => setNewBookingAlert(false), 5000);
+      } else if (payload.eventType === 'UPDATE') {
+        // Booking updated - refresh data
+        fetchDashboardData();
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [fetchDashboardData]);
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchDashboardData();
+  };
+
+  // Calculate stats for display
+  const displayStats = [
+    {
+      title: 'Total Revenue',
+      value: formatCurrency(stats?.totalRevenue || 0),
+      change: '+12.5%',
+      trend: 'up' as const,
+      icon: DollarSign,
+      color: 'from-green-500 to-emerald-600',
+    },
+    {
+      title: 'Total Bookings',
+      value: String(stats?.totalBookings || 0),
+      change: '+8.2%',
+      trend: 'up' as const,
+      icon: Calendar,
+      color: 'from-ocean-500 to-ocean-600',
+    },
+    {
+      title: 'Pending Bookings',
+      value: String(stats?.pendingBookings || 0),
+      change: stats?.pendingBookings ? `${stats.pendingBookings} awaiting` : 'None',
+      trend: 'up' as const,
+      icon: BedDouble,
+      color: 'from-purple-500 to-purple-600',
+    },
+    {
+      title: 'Confirmed',
+      value: String(stats?.confirmedBookings || 0),
+      change: '+15.3%',
+      trend: 'up' as const,
+      icon: Users,
+      color: 'from-gold-400 to-gold-500',
+    },
+  ];
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+          className="w-10 h-10 border-4 border-ocean-200 border-t-ocean-500 rounded-full"
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
+      {/* New Booking Alert */}
+      {newBookingAlert && (
+        <motion.div
+          initial={{ opacity: 0, y: -20, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -20, scale: 0.95 }}
+          className="fixed top-24 right-6 z-50 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-4 rounded-2xl shadow-xl flex items-center gap-3"
+        >
+          <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+            <Bell size={20} />
+          </div>
+          <div>
+            <p className="font-accent font-semibold">New Booking Received!</p>
+            <p className="text-sm text-white/80">Dashboard updated with new data</p>
+          </div>
+        </motion.div>
+      )}
+
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
@@ -117,6 +179,14 @@ export default function AdminDashboard() {
           <p className="text-navy-500/60">Welcome back! Here&apos;s what&apos;s happening at WhiteBay.</p>
         </div>
         <div className="flex items-center gap-3">
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm text-navy-500 hover:bg-gray-50 transition-colors flex items-center gap-2 disabled:opacity-50"
+          >
+            <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
+            Refresh
+          </button>
           <select className="px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm text-navy-500 focus:outline-none focus:border-ocean-500">
             <option>Last 7 days</option>
             <option>Last 30 days</option>
@@ -131,7 +201,7 @@ export default function AdminDashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => {
+        {displayStats.map((stat, index) => {
           const Icon = stat.icon;
           return (
             <motion.div
@@ -175,9 +245,9 @@ export default function AdminDashboard() {
         >
           <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
             <h2 className="font-heading text-lg text-navy-500">Recent Bookings</h2>
-            <button className="text-ocean-500 text-sm font-medium hover:underline">
+            <Link href="/admin/bookings" className="text-ocean-500 text-sm font-medium hover:underline">
               View All
-            </button>
+            </Link>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -193,7 +263,16 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {recentBookings.map((booking) => (
+                {recentBookings.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-6 py-12 text-center">
+                      <Calendar size={40} className="mx-auto text-gray-300 mb-3" />
+                      <p className="text-navy-500/60">No bookings yet</p>
+                      <p className="text-navy-500/40 text-sm">Bookings will appear here when guests make reservations</p>
+                    </td>
+                  </tr>
+                ) : (
+                  recentBookings.map((booking) => (
                   <tr key={booking.id} className="border-b border-gray-50 hover:bg-gray-50/50">
                     <td className="px-6 py-4 text-sm font-mono text-ocean-500">
                       {booking.id}
@@ -221,12 +300,13 @@ export default function AdminDashboard() {
                       {booking.amount}
                     </td>
                     <td className="px-6 py-4">
-                      <button className="text-navy-500/50 hover:text-navy-500">
+                        <Link href="/admin/bookings" className="text-navy-500/50 hover:text-navy-500">
                         <MoreHorizontal size={18} />
-                      </button>
+                        </Link>
                     </td>
                   </tr>
-                ))}
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -317,10 +397,9 @@ export default function AdminDashboard() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.7 }}
-        className="grid grid-cols-2 md:grid-cols-4 gap-4"
+        className="grid grid-cols-2 md:grid-cols-3 gap-4"
       >
         {[
-          { label: 'New Booking', icon: Calendar, color: 'bg-ocean-500' },
           { label: 'Add Room', icon: BedDouble, color: 'bg-purple-500' },
           { label: 'Send Notification', icon: Users, color: 'bg-gold-400' },
           { label: 'Generate Report', icon: TrendingUp, color: 'bg-teal-500' },

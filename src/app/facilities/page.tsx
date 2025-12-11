@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { motion, LazyMotion, domAnimation } from 'framer-motion';
 import { 
   Waves, 
   Sparkles, 
@@ -13,7 +13,9 @@ import {
   Umbrella,
   Anchor,
   Heart,
-  Users
+  Users,
+  Gamepad2,
+  Baby
 } from 'lucide-react';
 import AnimatedSection, { StaggerContainer, StaggerItem } from '@/components/AnimatedSection';
 import { FACILITIES } from '@/lib/constants';
@@ -25,6 +27,8 @@ const facilityIcons: Record<string, React.ReactNode> = {
   'utensils': <UtensilsCrossed size={24} />,
   'dumbbell': <Dumbbell size={24} />,
   'anchor': <Anchor size={24} />,
+  'gamepad': <Gamepad2 size={24} />,
+  'child': <Baby size={24} />,
 };
 
 export default function FacilitiesPage() {
@@ -91,10 +95,22 @@ export default function FacilitiesPage() {
       {/* Facilities Grid */}
       <section className="py-24 bg-sand-100">
         <div className="max-w-7xl mx-auto px-6">
-          <StaggerContainer className="space-y-24">
-            {FACILITIES.map((facility, index) => (
+          <AnimatedSection className="text-center mb-16">
+            <span className="text-ocean-500 font-accent text-sm tracking-widest uppercase mb-4 block">
+              Our Amenities
+            </span>
+            <h2 className="font-heading text-4xl md:text-5xl text-navy-500 mb-6">
+              Everything You Need
+            </h2>
+            <p className="text-navy-500/70 max-w-2xl mx-auto text-lg">
+              From relaxation to adventure, our facilities are designed to exceed your expectations.
+            </p>
+          </AnimatedSection>
+
+          <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {FACILITIES.map((facility) => (
               <StaggerItem key={facility.id}>
-                <FacilitySection facility={facility} index={index} />
+                <FacilityCard facility={facility} />
               </StaggerItem>
             ))}
           </StaggerContainer>
@@ -185,79 +201,58 @@ export default function FacilitiesPage() {
   );
 }
 
-// Facility Section Component
-interface FacilitySectionProps {
+// Facility Card Component
+interface FacilityCardProps {
   facility: typeof FACILITIES[0];
-  index: number;
 }
 
-function FacilitySection({ facility, index }: FacilitySectionProps) {
-  const isReversed = index % 2 !== 0;
-
+function FacilityCard({ facility }: FacilityCardProps) {
   return (
-    <div
-      id={facility.id}
-      className={`flex flex-col ${isReversed ? 'lg:flex-row-reverse' : 'lg:flex-row'} gap-12 items-center`}
+    <motion.div
+      whileHover={{ y: -5 }}
+      className="group bg-white rounded-3xl overflow-hidden shadow-lg shadow-navy-500/5 hover:shadow-2xl hover:shadow-ocean-500/15 transition-all duration-300"
     >
       {/* Image */}
-      <motion.div
-        initial={{ opacity: 0, x: isReversed ? 50 : -50 }}
-        whileInView={{ opacity: 1, x: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.7 }}
-        className="w-full lg:w-1/2"
-      >
-        <div className="relative group rounded-3xl overflow-hidden shadow-2xl shadow-navy-500/10">
-          <div className="aspect-[4/3] relative">
-            <Image
-              src={facility.image}
-              alt={facility.name}
-              fill
-              className="object-cover group-hover:scale-110 transition-transform duration-700"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-navy-500/60 to-transparent" />
-          </div>
-          
-          {/* Floating Badge */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.3 }}
-            className="absolute bottom-6 left-6 right-6"
-          >
-            <div className="flex items-center gap-3 px-4 py-3 bg-white/90 backdrop-blur-sm rounded-xl">
-              <Clock size={18} className="text-ocean-500" />
-              <span className="text-navy-500 font-accent">{facility.hours}</span>
-            </div>
-          </motion.div>
+      <div className="relative aspect-[4/3] overflow-hidden">
+        <Image
+          src={facility.image}
+          alt={facility.name}
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          className="object-cover group-hover:scale-105 transition-transform duration-500"
+          loading="lazy"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-navy-500/80 via-navy-500/20 to-transparent" />
+        
+        {/* Icon Badge */}
+        <div className="absolute top-4 left-4 w-12 h-12 bg-white/90 backdrop-blur-sm rounded-xl flex items-center justify-center text-ocean-500 shadow-lg">
+          {facilityIcons[facility.icon] || <Sparkles size={20} />}
         </div>
-      </motion.div>
+
+        {/* Hours Badge */}
+        <div className="absolute bottom-4 left-4 right-4">
+          <div className="flex items-center gap-2 px-3 py-2 bg-white/90 backdrop-blur-sm rounded-lg w-fit">
+            <Clock size={14} className="text-ocean-500" />
+            <span className="text-navy-500 font-accent text-sm">{facility.hours}</span>
+          </div>
+        </div>
+      </div>
 
       {/* Content */}
-      <motion.div
-        initial={{ opacity: 0, x: isReversed ? -50 : 50 }}
-        whileInView={{ opacity: 1, x: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.7, delay: 0.2 }}
-        className="w-full lg:w-1/2"
-      >
-        <div className="w-16 h-16 bg-gradient-to-br from-ocean-500 to-teal-400 rounded-2xl flex items-center justify-center text-white mb-6 shadow-lg shadow-ocean-500/30">
-          {facilityIcons[facility.icon] || <Sparkles size={24} />}
-        </div>
+      <div className="p-6">
+        <h3 className="font-heading text-2xl text-navy-500 mb-3 group-hover:text-ocean-500 transition-colors">
+          {facility.name}
+        </h3>
         
-        <h2 className="font-heading text-4xl text-navy-500 mb-4">{facility.name}</h2>
-        
-        <p className="text-navy-500/70 text-lg mb-6 leading-relaxed">
+        <p className="text-navy-500/70 text-sm mb-4 line-clamp-3">
           {facility.description}
         </p>
 
-        <ul className="space-y-3 mb-8">
-          {getFacilityFeatures(facility.id).map((feature, idx) => (
-            <li key={idx} className="flex items-center gap-3 text-navy-500/70">
-              <div className="w-6 h-6 bg-teal-400/20 rounded-full flex items-center justify-center">
-                <ArrowRight size={12} className="text-teal-500" />
-              </div>
+        {/* Features */}
+        <ul className="space-y-2 mb-5">
+          {getFacilityFeatures(facility.id).slice(0, 3).map((feature, idx) => (
+            <li key={idx} className="flex items-center gap-2 text-navy-500/60 text-sm">
+              <div className="w-1.5 h-1.5 bg-teal-400 rounded-full" />
               {feature}
             </li>
           ))}
@@ -265,13 +260,13 @@ function FacilitySection({ facility, index }: FacilitySectionProps) {
 
         <Link
           href="/booking"
-          className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-ocean-500 to-ocean-600 text-white font-accent font-medium rounded-xl hover:shadow-lg hover:shadow-ocean-500/30 transition-all"
+          className="inline-flex items-center gap-2 text-ocean-500 font-accent font-medium text-sm group-hover:gap-3 transition-all"
         >
-          Reserve Now
-          <ArrowRight size={18} />
+          Learn More
+          <ArrowRight size={16} />
         </Link>
-      </motion.div>
-    </div>
+      </div>
+    </motion.div>
   );
 }
 
@@ -313,6 +308,18 @@ function getFacilityFeatures(facilityId: string): string[] {
       'Snorkeling & diving',
       'Paddleboarding & kayaking',
       'Sailing lessons',
+    ],
+    'game-lounge': [
+      'PlayStation 5 & Xbox Series X',
+      'Classic arcade machines',
+      'VR gaming experiences',
+      'Board games & billiards',
+    ],
+    'kids-club': [
+      'Supervised activities (ages 4-12)',
+      'Arts & crafts programs',
+      'Beach games & adventures',
+      'Educational workshops',
     ],
   };
   return features[facilityId] || [];

@@ -23,6 +23,7 @@ import {
 import AnimatedSection from '@/components/AnimatedSection';
 import { ROOMS } from '@/lib/constants';
 import { formatCurrency, cn, generateBookingCode, calculateNights } from '@/lib/utils';
+import { createGuestBooking } from '@/lib/supabase';
 
 type BookingStep = 1 | 2 | 3 | 4;
 
@@ -115,11 +116,38 @@ function BookingContent() {
 
   const handleSubmit = async () => {
     setIsProcessing(true);
-    // Simulate payment processing
-    await new Promise((resolve) => setTimeout(resolve, 3000));
+    try {
+      // Generate booking code
+      const code = generateBookingCode();
+      
+      // Save booking to database
+      await createGuestBooking({
+        room_id: bookingData.roomId,
+        room_name: selectedRoom?.name || '',
+        check_in: bookingData.checkIn,
+        check_out: bookingData.checkOut,
+        guests: bookingData.guests,
+        nights: nights,
+        total_amount: grandTotal,
+        booking_code: code,
+        guest_first_name: bookingData.firstName,
+        guest_last_name: bookingData.lastName,
+        guest_email: bookingData.email,
+        guest_phone: bookingData.phone,
+        special_requests: bookingData.specialRequests,
+        payment_method: bookingData.paymentMethod,
+      });
+      
+      setBookingCode(code);
+      setIsProcessing(false);
+      setBookingComplete(true);
+    } catch (error) {
+      console.error('Error creating booking:', error);
+      // Still show confirmation for demo purposes if Supabase is not configured
     setBookingCode(generateBookingCode());
     setIsProcessing(false);
     setBookingComplete(true);
+    }
   };
 
   if (bookingComplete) {

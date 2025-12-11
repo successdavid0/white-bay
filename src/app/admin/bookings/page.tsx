@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search,
@@ -18,100 +18,114 @@ import {
   User,
   Mail,
   Phone,
-  CreditCard
+  CreditCard,
+  RefreshCw,
+  Bell
 } from 'lucide-react';
 import { cn, formatCurrency } from '@/lib/utils';
+import { getAdminBookings, subscribeToBookings, BookingWithGuest } from '@/lib/supabase';
 
-// Mock bookings data
-const mockBookings = [
-  {
-    id: 'WB-X8K2M9P4',
-    guest: { name: 'Sarah Mitchell', email: 'sarah@email.com', phone: '+1 555 123 4567' },
-    room: 'Ocean View Suite',
-    checkIn: '2024-01-15',
-    checkOut: '2024-01-18',
-    nights: 3,
-    guests: 2,
-    status: 'confirmed',
-    paymentStatus: 'paid',
-    amount: 1350,
-    createdAt: '2024-01-10',
-  },
-  {
-    id: 'WB-N3J7L2Q8',
-    guest: { name: 'James Thompson', email: 'james@email.com', phone: '+1 555 234 5678' },
-    room: 'Beachfront Villa',
-    checkIn: '2024-01-16',
-    checkOut: '2024-01-20',
-    nights: 4,
-    guests: 4,
-    status: 'pending',
-    paymentStatus: 'pending',
-    amount: 3400,
-    createdAt: '2024-01-11',
-  },
-  {
-    id: 'WB-P9R4T6W1',
-    guest: { name: 'Emily Chen', email: 'emily@email.com', phone: '+1 555 345 6789' },
-    room: 'Honeymoon Haven',
-    checkIn: '2024-01-17',
-    checkOut: '2024-01-21',
-    nights: 4,
-    guests: 2,
-    status: 'confirmed',
-    paymentStatus: 'paid',
-    amount: 2720,
-    createdAt: '2024-01-12',
-  },
-  {
-    id: 'WB-K5M8N2V7',
-    guest: { name: 'Michael Rodriguez', email: 'michael@email.com', phone: '+1 555 456 7890' },
-    room: 'Presidential Suite',
-    checkIn: '2024-01-18',
-    checkOut: '2024-01-22',
-    nights: 4,
-    guests: 2,
-    status: 'confirmed',
-    paymentStatus: 'paid',
-    amount: 6000,
-    createdAt: '2024-01-13',
-  },
-  {
-    id: 'WB-L1Q3R8S4',
-    guest: { name: 'Anna Williams', email: 'anna@email.com', phone: '+1 555 567 8901' },
-    room: 'Garden Retreat',
-    checkIn: '2024-01-19',
-    checkOut: '2024-01-21',
-    nights: 2,
-    guests: 2,
-    status: 'cancelled',
-    paymentStatus: 'refunded',
-    amount: 640,
-    createdAt: '2024-01-14',
-  },
-  {
-    id: 'WB-M2P4Q6R8',
-    guest: { name: 'David Kim', email: 'david@email.com', phone: '+1 555 678 9012' },
-    room: 'Family Suite',
-    checkIn: '2024-01-20',
-    checkOut: '2024-01-25',
-    nights: 5,
-    guests: 5,
-    status: 'pending',
-    paymentStatus: 'pending',
-    amount: 2900,
-    createdAt: '2024-01-15',
-  },
-];
+// Transform database booking to display format
+interface DisplayBooking {
+  id: string;
+  guest: { name: string; email: string; phone: string };
+  room: string;
+  checkIn: string;
+  checkOut: string;
+  nights: number;
+  guests: number;
+  status: 'confirmed' | 'pending' | 'cancelled' | 'completed';
+  paymentStatus: 'paid' | 'pending' | 'refunded';
+  amount: number;
+  createdAt: string;
+  specialRequests?: string;
+}
 
-type Booking = typeof mockBookings[0];
+function transformBooking(booking: BookingWithGuest): DisplayBooking {
+  return {
+    id: booking.booking_code || booking.id,
+    guest: {
+      name: `${booking.guest_first_name || ''} ${booking.guest_last_name || ''}`.trim() || 'Guest',
+      email: booking.guest_email || '',
+      phone: booking.guest_phone || '',
+    },
+    room: booking.room_name || 'Unknown Room',
+    checkIn: booking.check_in,
+    checkOut: booking.check_out,
+    nights: booking.nights || 1,
+    guests: booking.guests,
+    status: booking.booking_status as DisplayBooking['status'],
+    paymentStatus: booking.payment_status as DisplayBooking['paymentStatus'],
+    amount: booking.total_amount,
+    createdAt: booking.created_at,
+    specialRequests: booking.special_requests,
+  };
+}
+
+type Booking = DisplayBooking;
 
 export default function AdminBookingsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [newBookingAlert, setNewBookingAlert] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const filteredBookings = mockBookings.filter((booking) => {
+  // Fetch bookings from database
+  const fetchBookings = useCallback(async () => {
+    try {
+      const data = await getAdminBookings();
+      const transformedBookings = data.map(transformBooking);
+      setBookings(transformedBookings);
+    } catch (error) {
+      console.error('Error fetching bookings:', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  // Initial fetch and real-time subscription
+  useEffect(() => {
+    fetchBookings();
+
+    // Subscribe to real-time updates
+    const unsubscribe = subscribeToBookings((payload) => {
+      if (payload.eventType === 'INSERT' && payload.new) {
+        // New booking received!
+        const newBooking = transformBooking(payload.new);
+        setBookings(prev => [newBooking, ...prev]);
+        setNewBookingAlert(true);
+        
+        // Auto-hide notification after 5 seconds
+        setTimeout(() => setNewBookingAlert(false), 5000);
+      } else if (payload.eventType === 'UPDATE' && payload.new) {
+        // Booking updated
+        const updatedBooking = transformBooking(payload.new);
+        setBookings(prev => 
+          prev.map(b => b.id === updatedBooking.id ? updatedBooking : b)
+        );
+      } else if (payload.eventType === 'DELETE' && payload.old) {
+        // Booking deleted
+        setBookings(prev => 
+          prev.filter(b => b.id !== (payload.old?.booking_code || payload.old?.id))
+        );
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [fetchBookings]);
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchBookings();
+  };
+
+  const filteredBookings = bookings.filter((booking) => {
     const matchesSearch = 
       booking.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       booking.guest.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -122,21 +136,69 @@ export default function AdminBookingsPage() {
     return matchesSearch && matchesStatus;
   });
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+          className="w-10 h-10 border-4 border-ocean-200 border-t-ocean-500 rounded-full"
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
+      {/* New Booking Alert */}
+      <AnimatePresence>
+        {newBookingAlert && (
+          <motion.div
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            className="fixed top-24 right-6 z-50 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-4 rounded-2xl shadow-xl flex items-center gap-3"
+          >
+            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+              <Bell size={20} />
+            </div>
+            <div>
+              <p className="font-accent font-semibold">New Booking Received!</p>
+              <p className="text-sm text-white/80">A new reservation has just been made</p>
+            </div>
+            <button 
+              onClick={() => setNewBookingAlert(false)}
+              className="ml-4 p-1 hover:bg-white/20 rounded-lg transition-colors"
+            >
+              <X size={18} />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-heading text-navy-500">Bookings</h1>
-          <p className="text-navy-500/60">Manage all resort bookings</p>
+          <p className="text-navy-500/60">
+            Manage all resort bookings 
+            <span className="ml-2 px-2 py-0.5 bg-ocean-100 text-ocean-600 text-xs rounded-full">
+              {bookings.length} total
+            </span>
+          </p>
         </div>
         <div className="flex items-center gap-3">
+          <button 
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm text-navy-500 hover:bg-gray-50 transition-colors flex items-center gap-2 disabled:opacity-50"
+          >
+            <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
+            Refresh
+          </button>
           <button className="px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm text-navy-500 hover:bg-gray-50 transition-colors flex items-center gap-2">
             <Download size={16} />
             Export
-          </button>
-          <button className="px-4 py-2 bg-ocean-500 text-white rounded-xl text-sm font-medium hover:bg-ocean-600 transition-colors">
-            + New Booking
           </button>
         </div>
       </div>
@@ -262,18 +324,35 @@ export default function AdminBookingsPage() {
           </table>
         </div>
 
+        {/* Empty State */}
+        {filteredBookings.length === 0 && (
+          <div className="px-6 py-16 text-center">
+            <Calendar size={48} className="mx-auto text-gray-300 mb-4" />
+            <h3 className="text-lg font-heading text-navy-500 mb-2">No Bookings Found</h3>
+            <p className="text-navy-500/60">
+              {searchTerm || statusFilter !== 'all' 
+                ? 'Try adjusting your search or filter criteria'
+                : 'Bookings will appear here when guests make reservations'}
+            </p>
+          </div>
+        )}
+
         {/* Pagination */}
         <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
           <p className="text-sm text-navy-500/60">
-            Showing {filteredBookings.length} of {mockBookings.length} bookings
+            Showing {filteredBookings.length} of {bookings.length} bookings
           </p>
           <div className="flex items-center gap-2">
             <button className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50">
               <ChevronLeft size={16} />
             </button>
             <button className="px-3 py-1 bg-ocean-500 text-white rounded-lg text-sm">1</button>
+            {bookings.length > 10 && (
             <button className="px-3 py-1 text-navy-500 hover:bg-gray-100 rounded-lg text-sm">2</button>
+            )}
+            {bookings.length > 20 && (
             <button className="px-3 py-1 text-navy-500 hover:bg-gray-100 rounded-lg text-sm">3</button>
+            )}
             <button className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50">
               <ChevronRight size={16} />
             </button>

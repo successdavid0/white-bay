@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -10,14 +10,13 @@ import {
   Search, 
   ChevronRight, 
   Star, 
-  Waves, 
-  Sparkles,
-  Play,
   ArrowRight,
-  Quote
+  Quote,
+  Waves,
+  Sparkles
 } from 'lucide-react';
 import AnimatedSection, { StaggerContainer, StaggerItem, Counter } from '@/components/AnimatedSection';
-import { ROOMS, FACILITIES, TESTIMONIALS, RESORT_STATS, SITE_CONFIG } from '@/lib/constants';
+import { ROOMS, FACILITIES, TESTIMONIALS, RESORT_STATS } from '@/lib/constants';
 import { formatCurrency, cn } from '@/lib/utils';
 
 export default function HomePage() {
@@ -52,45 +51,17 @@ function HeroSection() {
           fill
           className="object-cover"
           priority
+          sizes="100vw"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-navy-500/60 via-navy-500/40 to-navy-500/70" />
-        
-        {/* Animated Gradient Overlay */}
-        <motion.div
-          className="absolute inset-0 bg-gradient-to-r from-ocean-500/20 to-teal-400/20"
-          animate={{
-            opacity: [0.3, 0.5, 0.3],
-          }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
-        />
       </div>
-
-      {/* Floating Decorative Elements - Hidden on mobile */}
-      <motion.div
-        className="absolute top-32 left-20 text-white/10 hidden md:block"
-        animate={{ y: [-20, 20, -20], rotate: [0, 10, 0] }}
-        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-      >
-        <Waves size={120} />
-      </motion.div>
-      <motion.div
-        className="absolute bottom-40 right-20 text-white/10 hidden md:block"
-        animate={{ y: [20, -20, 20], rotate: [0, -10, 0] }}
-        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-      >
-        <Sparkles size={80} />
-      </motion.div>
 
       {/* Hero Content */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 text-center pt-20 sm:pt-24">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
+          transition={{ duration: 0.5 }}
           className="mb-6"
         >
           <span className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-white/90 text-sm font-accent">
@@ -100,9 +71,9 @@ function HeroSection() {
         </motion.div>
 
         <motion.h1
-          initial={{ opacity: 0, y: 50 }}
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
           className="font-heading text-4xl sm:text-5xl md:text-7xl lg:text-8xl text-white mb-4 sm:mb-6 text-shadow-lg"
         >
           Where Luxury
@@ -113,9 +84,9 @@ function HeroSection() {
         </motion.h1>
 
         <motion.p
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.6 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
           className="text-base sm:text-lg md:text-xl text-white/80 max-w-2xl mx-auto mb-8 sm:mb-12 px-2"
         >
           Discover an extraordinary escape at WhiteBay Resort. Pristine beaches, 
@@ -124,9 +95,9 @@ function HeroSection() {
 
         {/* Booking Widget */}
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.8 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
           className="max-w-4xl mx-auto"
         >
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-6 md:p-8 border border-white/20 shadow-2xl">
@@ -200,24 +171,11 @@ function HeroSection() {
         </motion.div>
 
         {/* Scroll Indicator */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.5 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2"
-        >
-          <motion.div
-            animate={{ y: [0, 10, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="w-8 h-12 border-2 border-white/30 rounded-full flex items-start justify-center p-2"
-          >
-            <motion.div
-              animate={{ y: [0, 16, 0] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="w-1.5 h-3 bg-white/60 rounded-full"
-            />
-          </motion.div>
-        </motion.div>
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+          <div className="w-8 h-12 border-2 border-white/30 rounded-full flex items-start justify-center p-2">
+            <div className="w-1.5 h-3 bg-white/60 rounded-full" />
+          </div>
+        </div>
       </div>
     </section>
   );

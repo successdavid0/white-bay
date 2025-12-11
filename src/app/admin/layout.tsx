@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -16,16 +16,27 @@ import {
   LogOut,
   Bell,
   Search,
-  ChevronDown
+  ChevronDown,
+  MessageSquare,
+  Tag,
+  UserCog,
+  FileText,
+  Ticket,
+  Gift
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { runAutoCleanup, getNewMessages, updateRoomStatusesFromBookings, initializeSampleData } from '@/lib/storage';
 
 const sidebarLinks = [
   { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
   { name: 'Bookings', href: '/admin/bookings', icon: Calendar },
+  { name: 'Ticket Sales', href: '/admin/tickets', icon: Ticket },
   { name: 'Rooms', href: '/admin/rooms', icon: BedDouble },
   { name: 'Guests', href: '/admin/guests', icon: Users },
-  { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
+  { name: 'Staff', href: '/admin/staff', icon: UserCog },
+  { name: 'Messages', href: '/admin/messages', icon: MessageSquare },
+  { name: 'Promotions', href: '/admin/promotions', icon: Gift },
+  { name: 'Reports', href: '/admin/reports', icon: BarChart3 },
   { name: 'Settings', href: '/admin/settings', icon: Settings },
 ];
 
@@ -36,6 +47,18 @@ export default function AdminLayout({
 }) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [newMessageCount, setNewMessageCount] = useState(0);
+
+  useEffect(() => {
+    // Initialize sample data and run cleanup on mount
+    initializeSampleData();
+    runAutoCleanup();
+    updateRoomStatusesFromBookings();
+    
+    // Get new message count
+    const messages = getNewMessages();
+    setNewMessageCount(messages.length);
+  }, [pathname]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -79,11 +102,12 @@ export default function AdminLayout({
         </div>
 
         {/* Navigation */}
-        <nav className="p-4 space-y-1">
+        <nav className="p-4 space-y-1 max-h-[calc(100vh-200px)] overflow-y-auto">
           {sidebarLinks.map((link) => {
             const Icon = link.icon;
             const isActive = pathname === link.href || 
               (link.href !== '/admin' && pathname.startsWith(link.href));
+            const showBadge = link.href === '/admin/messages' && newMessageCount > 0;
 
             return (
               <Link
@@ -91,7 +115,7 @@ export default function AdminLayout({
                 href={link.href}
                 onClick={() => setSidebarOpen(false)}
                 className={cn(
-                  'flex items-center gap-3 px-4 py-3 rounded-xl transition-all',
+                  'flex items-center gap-3 px-4 py-3 rounded-xl transition-all relative',
                   isActive
                     ? 'bg-ocean-500 text-white shadow-lg shadow-ocean-500/30'
                     : 'text-white/70 hover:bg-white/10 hover:text-white'
@@ -99,10 +123,26 @@ export default function AdminLayout({
               >
                 <Icon size={20} />
                 <span className="font-accent">{link.name}</span>
+                {showBadge && (
+                  <span className="ml-auto px-2 py-0.5 bg-red-500 text-white text-xs rounded-full">
+                    {newMessageCount}
+                  </span>
+                )}
               </Link>
             );
           })}
         </nav>
+
+        {/* Staff Portal Link */}
+        <div className="absolute bottom-24 left-0 right-0 px-4">
+          <Link
+            href="/staff"
+            className="flex items-center gap-3 px-4 py-3 text-white/50 hover:text-white hover:bg-white/10 rounded-xl transition-all text-sm"
+          >
+            <FileText size={18} />
+            <span>Staff Portal</span>
+          </Link>
+        </div>
 
         {/* User Profile */}
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-white/10">
@@ -148,10 +188,21 @@ export default function AdminLayout({
 
             {/* Right Side */}
             <div className="flex items-center gap-4">
+              {/* View Website */}
+              <Link
+                href="/"
+                target="_blank"
+                className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm text-gray-500 hover:text-ocean-500 transition-colors"
+              >
+                View Website
+              </Link>
+
               {/* Notifications */}
               <button className="relative p-2 text-navy-500/70 hover:text-navy-500 hover:bg-gray-100 rounded-xl transition-colors">
                 <Bell size={20} />
+                {newMessageCount > 0 && (
                 <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+                )}
               </button>
 
               {/* User Menu */}
@@ -173,4 +224,3 @@ export default function AdminLayout({
     </div>
   );
 }
-

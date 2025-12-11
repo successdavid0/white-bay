@@ -1,8 +1,14 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { SITE_CONFIG } from '@/lib/constants';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import './globals.css';
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: '#0c4a6e',
+};
 
 export const metadata: Metadata = {
   title: {
@@ -10,11 +16,11 @@ export const metadata: Metadata = {
     template: `%s | ${SITE_CONFIG.name}`,
   },
   description: SITE_CONFIG.description,
-  keywords: ['resort', 'luxury hotel', 'beach resort', 'spa', 'vacation', 'WhiteBay', 'oceanfront'],
+  keywords: ['resort', 'luxury hotel', 'beach resort', 'spa', 'vacation', 'WhiteBay', 'oceanfront', 'Lagos', 'Nigeria'],
   authors: [{ name: 'WhiteBay Resort' }],
   openGraph: {
     type: 'website',
-    locale: 'en_US',
+    locale: 'en_NG',
     siteName: SITE_CONFIG.name,
     title: SITE_CONFIG.name,
     description: SITE_CONFIG.description,
@@ -37,6 +43,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="scroll-smooth">
+      <head>
+        {/* Preconnect to image CDN */}
+        <link rel="preconnect" href="https://images.unsplash.com" />
+        <link rel="dns-prefetch" href="https://images.unsplash.com" />
+      </head>
       <body className="min-h-screen bg-sand-100 text-navy-500 antialiased">
         <Header />
         <main>{children}</main>
@@ -45,4 +56,3 @@ export default function RootLayout({
     </html>
   );
 }
-
