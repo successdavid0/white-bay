@@ -51,7 +51,7 @@ export default function AdminTicketsPage() {
   const totalRevenue = purchases.filter(p => p.status === 'confirmed').reduce((sum, p) => sum + p.totalPrice, 0);
   const totalTickets = purchases.filter(p => p.status === 'confirmed').reduce((sum, p) => sum + p.quantity, 0);
 
-  const uniqueEvents = [...new Set(purchases.map(p => p.eventId))];
+  const uniqueEvents = Array.from(new Set(purchases.map(p => p.eventId)));
 
   if (loading) {
     return (

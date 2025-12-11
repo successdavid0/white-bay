@@ -17,7 +17,7 @@ const categoryIcons: { [key: string]: string } = {
 };
 
 export default function SpaPage() {
-  const categories = [...new Set(SPA_SERVICES.map(s => s.category))];
+  const categories = Array.from(new Set(SPA_SERVICES.map(s => s.category)));
 
   return (
     <div className="min-h-screen bg-sand-100">
